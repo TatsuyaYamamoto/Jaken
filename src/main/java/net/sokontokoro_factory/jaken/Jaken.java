@@ -1,70 +1,68 @@
-package net.sokontokoro_factory.tweetly_oauth;
+package net.sokontokoro_factory.jaken;
 
-import net.sokontokoro_factory.tweetly_oauth.dto.AccessToken;
-import net.sokontokoro_factory.tweetly_oauth.dto.RequestToken;
-import net.sokontokoro_factory.tweetly_oauth.network.ServiceProviderConnection;
-import net.sokontokoro_factory.tweetly_oauth.network.TwitterResourceEndpoint;
+import lombok.Getter;
+import lombok.Setter;
+import net.sokontokoro_factory.jaken.element.*;
+import net.sokontokoro_factory.jaken.element.Signature;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-
+import java.security.*;
 
 public class Jaken {
+	public static final String JWT_HEADER_TYPE = "JWT";
 
-	/**
-	 * リクエストトークンを取得する
-	 * @param callback 認証後にコールバックするURL
-	 * @return
-     */
-	public RequestToken getRequestToken(String callback) throws TweetlyOAuthException{
-		return ServiceProviderConnection.requestRequestToken(callback);
-	}
+	private String issuer;
+	private String subject;
+	private String audience;
 
-	/**
-	 * リクエストトークンをパラメーターに含んだOAuth認証用のページのURIオブジェクトを取得する。
-	 * @param requestToken getRequestToken()で取得したRequestTokenオブジェクト
-	 * @return
-     */
-	public URI getAuthorizePageUri(RequestToken requestToken)throws TweetlyOAuthException{
-		URI uri = null;
-		try {
-			uri = new URI("https://api.twitter.com/oauth/authorize?oauth_token=" + requestToken.getToken());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			throw new TweetlyOAuthException();
-		}
+	@Getter
+	@Setter
+	private String jwt;
 
-		return uri;
-	}
+	@Getter
+	@Setter
+	private Key key;
+	@Getter
+	@Setter
+	private Header header;
+	@Getter
+	@Setter
+	private ClaimSet claimSet;
+	@Getter
+	@Setter
+	private Signature signature;
 
-
-	/**
-	 *
-	 * @param token
-	 * @param oauthVerifier
-	 * @return
-	 * @throws TweetlyOAuthException
-     */
-	public AccessToken getAccessToken(RequestToken token, String oauthVerifier)throws TweetlyOAuthException{
-		return  ServiceProviderConnection.requestAccessToken(token, oauthVerifier);
-	}
-
-	public String getUsersShow(String userId, AccessToken accessToken) throws TweetlyOAuthException{
-
-		Map queryParams = new HashMap();
-		queryParams.put("user_id", userId);
-
-		return ServiceProviderConnection.get(TwitterResourceEndpoint.USERS_SHOW.getString(), queryParams, accessToken);
-	}
-	public String getTwitterResource(
-			String endpoint,
-			Map params,
-			AccessToken accessToken)throws TweetlyOAuthException{
-
-		return ServiceProviderConnection.get(endpoint, params, accessToken);
+	public Jaken(){
 
 	}
 
+	public static JakenBuilder getBuilder(){
+		return new JakenBuilder();
+	}
+	public static JakenVerifier getVerifier(){
+		return new JakenVerifier();
+	}
+
+	public String create(
+			String jwtId,
+			long validPeriodMillis,
+			long notBeforeTimeMillis){
+		Header header = new Header();
+		ClaimSet claimSet = new ClaimSet();
+
+		String headerBase64 = "";
+		String claimSetBase64 = "";
+		String signatureBase64 = "";
+
+
+		String signature;
+
+		StringBuilder jaken = new StringBuilder();
+		jaken.append(headerBase64);
+		jaken.append(".");
+		jaken.append(claimSetBase64);
+		jaken.append(".");
+		jaken.append(signatureBase64);
+
+		return jaken.toString();
+	}
 }
